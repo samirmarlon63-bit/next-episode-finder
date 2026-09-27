@@ -28,7 +28,7 @@ export function useChangeNotifications() {
         const a = c.animes as { title_english: string | null; title_romaji: string | null } | null;
         new Notification(CHANGE_LABELS[c.kind] ?? "Actualización", { body: a?.title_english ?? a?.title_romaji ?? "" });
       }
-      update({ lastSeenChange: data[data.length - 1].created_at });
+      update({ lastSeenChange: data[data.length - 1]!.created_at });
     };
     check();
     const t = setInterval(check, 5 * 60_000);

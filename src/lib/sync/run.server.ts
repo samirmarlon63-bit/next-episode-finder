@@ -4,7 +4,7 @@ import { buildSearchKeys, normalizeTitle } from "./normalize";
 import { fetchAiringSchedule, fetchNotYetReleased, searchAnime, type AniMedia } from "./anilist.server";
 import { AiBlockedError, extractWithAi, fetchFeed } from "./news.server";
 
-type Stats = Record<string, number>;
+type Stats = { created?: number; updated?: number; date_changes?: number; api_items?: number; jikan_verified?: number; news_new?: number; news_relevant?: number };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function mediaToRow(m: AniMedia, airing?: { airingAt: number; episode: number }) {
@@ -180,7 +180,7 @@ async function syncNews(stats: Stats, errors: string[]) {
       if (fresh.length) {
         const results = await extractWithAi(fresh);
         for (let i = 0; i < fresh.length; i++) {
-          const it = fresh[i];
+          const it = fresh[i]!;
           const r = results.find((x) => x.index === i);
           const base = {
             source_id: src.id,

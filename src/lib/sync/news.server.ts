@@ -22,7 +22,7 @@ function decode(s: string) {
 
 function tag(block: string, name: string): string | null {
   const m = new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, "i").exec(block);
-  return m ? m[1] : null;
+  return m ? (m[1] ?? null) : null;
 }
 
 export async function fetchFeed(url: string): Promise<FeedItem[]> {

@@ -53,11 +53,11 @@ function Configuracion() {
     queryFn: async () => (await supabase.from("news_sources").select("id, name, enabled").order("name")).data ?? [],
   });
 
-  const toggleNotifications = async (on: boolean) => {
+  const toggleNotifications = async (on: boolean): Promise<void> => {
     if (on) {
-      if (typeof Notification === "undefined") return toast.error("Este dispositivo no admite notificaciones");
+      if (typeof Notification === "undefined") { toast.error("Este dispositivo no admite notificaciones"); return; }
       const p = await Notification.requestPermission();
-      if (p !== "granted") return toast.error("Permiso de notificaciones denegado");
+      if (p !== "granted") { toast.error("Permiso de notificaciones denegado"); return; }
     }
     update({ notifications: on, lastSeenChange: new Date().toISOString() });
   };

@@ -55,7 +55,7 @@ async function gql<T>(query: string, variables: Record<string, unknown>): Promis
     }
     if (!res.ok) throw new Error(`AniList ${res.status}: ${(await res.text()).slice(0, 200)}`);
     const json = (await res.json()) as { data: T; errors?: { message: string }[] };
-    if (json.errors?.length) throw new Error(`AniList: ${json.errors[0].message}`);
+    if (json.errors?.length) throw new Error(`AniList: ${json.errors[0]?.message}`);
     return json.data;
   }
   throw new Error("AniList rate limit");
