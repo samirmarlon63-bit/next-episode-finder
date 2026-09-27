@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ConfiguracionRouteImport } from './routes/configuracion'
 import { Route as GuardadosRouteImport } from './routes/guardados'
 import { Route as ApiPublicSyncRouteImport } from './routes/api/public/sync'
@@ -17,6 +18,11 @@ import { Route as ApiPublicSyncRouteImport } from './routes/api/public/sync'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfiguracionRoute = ConfiguracionRouteImport.update({
@@ -37,12 +43,14 @@ const ApiPublicSyncRoute = ApiPublicSyncRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/configuracion': typeof ConfiguracionRoute
   '/guardados': typeof GuardadosRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/configuracion': typeof ConfiguracionRoute
   '/guardados': typeof GuardadosRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
@@ -50,20 +58,29 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/configuracion': typeof ConfiguracionRoute
   '/guardados': typeof GuardadosRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/configuracion' | '/guardados' | '/api/public/sync'
+  fullPaths:
+    '/' | '/admin' | '/configuracion' | '/guardados' | '/api/public/sync'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/configuracion' | '/guardados' | '/api/public/sync'
-  id: '__root__' | '/' | '/configuracion' | '/guardados' | '/api/public/sync'
+  to: '/' | '/admin' | '/configuracion' | '/guardados' | '/api/public/sync'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/configuracion'
+    | '/guardados'
+    | '/api/public/sync'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   ConfiguracionRoute: typeof ConfiguracionRoute
   GuardadosRoute: typeof GuardadosRoute
   ApiPublicSyncRoute: typeof ApiPublicSyncRoute
@@ -76,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/configuracion': {
@@ -104,6 +128,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   ConfiguracionRoute: ConfiguracionRoute,
   GuardadosRoute: GuardadosRoute,
   ApiPublicSyncRoute: ApiPublicSyncRoute,
