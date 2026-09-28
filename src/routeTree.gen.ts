@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ConfiguracionRouteImport } from './routes/configuracion'
 import { Route as GuardadosRouteImport } from './routes/guardados'
 import { Route as ApiPublicSyncRouteImport } from './routes/api/public/sync'
+import { Route as ApiPublicSyncVideosRouteImport } from './routes/api/public/sync-videos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const ApiPublicSyncRoute = ApiPublicSyncRouteImport.update({
   path: '/api/public/sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSyncVideosRoute = ApiPublicSyncVideosRouteImport.update({
+  id: '/api/public/sync-videos',
+  path: '/api/public/sync-videos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/configuracion': typeof ConfiguracionRoute
   '/guardados': typeof GuardadosRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
+  '/api/public/sync-videos': typeof ApiPublicSyncVideosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/configuracion': typeof ConfiguracionRoute
   '/guardados': typeof GuardadosRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
+  '/api/public/sync-videos': typeof ApiPublicSyncVideosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,25 @@ export interface FileRoutesById {
   '/configuracion': typeof ConfiguracionRoute
   '/guardados': typeof GuardadosRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
+  '/api/public/sync-videos': typeof ApiPublicSyncVideosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/admin' | '/configuracion' | '/guardados' | '/api/public/sync'
+    | '/'
+    | '/admin'
+    | '/configuracion'
+    | '/guardados'
+    | '/api/public/sync'
+    | '/api/public/sync-videos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/configuracion' | '/guardados' | '/api/public/sync'
+  to:
+    | '/'
+    | '/admin'
+    | '/configuracion'
+    | '/guardados'
+    | '/api/public/sync'
+    | '/api/public/sync-videos'
   id:
     | '__root__'
     | '/'
@@ -76,6 +96,7 @@ export interface FileRouteTypes {
     | '/configuracion'
     | '/guardados'
     | '/api/public/sync'
+    | '/api/public/sync-videos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -84,6 +105,7 @@ export interface RootRouteChildren {
   ConfiguracionRoute: typeof ConfiguracionRoute
   GuardadosRoute: typeof GuardadosRoute
   ApiPublicSyncRoute: typeof ApiPublicSyncRoute
+  ApiPublicSyncVideosRoute: typeof ApiPublicSyncVideosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -123,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/sync-videos': {
+      id: '/api/public/sync-videos'
+      path: '/api/public/sync-videos'
+      fullPath: '/api/public/sync-videos'
+      preLoaderRoute: typeof ApiPublicSyncVideosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -132,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracionRoute: ConfiguracionRoute,
   GuardadosRoute: GuardadosRoute,
   ApiPublicSyncRoute: ApiPublicSyncRoute,
+  ApiPublicSyncVideosRoute: ApiPublicSyncVideosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

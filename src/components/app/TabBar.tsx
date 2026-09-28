@@ -6,7 +6,7 @@ const tabs = [
   { to: "/", label: "Nuevos", icon: Sparkles },
   { to: "/videos", label: "Videos", icon: PlayCircle },
   { to: "/guardados", label: "Guardados", icon: Bookmark },
-  { to: "/configuracion", label: "Ajustes", icon: Settings2 },
+  { to: "/configuracion", label: "Configuración", icon: Settings2 },
 ] as const;
 
 export function TabBar() {
