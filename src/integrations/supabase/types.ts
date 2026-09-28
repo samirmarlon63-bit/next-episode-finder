@@ -316,6 +316,126 @@ export type Database = {
         }
         Relationships: []
       }
+      video_animes: {
+        Row: {
+          anime_id: string | null
+          cover_url: string | null
+          created_at: string
+          id: string
+          last_sync_error: string | null
+          last_synced_at: string | null
+          source_name: string | null
+          status: string
+          synopsis: string | null
+          title: string
+          updated_at: string
+          youtube_playlist_id: string | null
+        }
+        Insert: {
+          anime_id?: string | null
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          last_sync_error?: string | null
+          last_synced_at?: string | null
+          source_name?: string | null
+          status?: string
+          synopsis?: string | null
+          title: string
+          updated_at?: string
+          youtube_playlist_id?: string | null
+        }
+        Update: {
+          anime_id?: string | null
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          last_sync_error?: string | null
+          last_synced_at?: string | null
+          source_name?: string | null
+          status?: string
+          synopsis?: string | null
+          title?: string
+          updated_at?: string
+          youtube_playlist_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_animes_anime_id_fkey"
+            columns: ["anime_id"]
+            isOneToOne: false
+            referencedRelation: "animes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_episodes: {
+        Row: {
+          created_at: string
+          id: string
+          number: number
+          title: string | null
+          video_anime_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          number: number
+          title?: string | null
+          video_anime_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          number?: number
+          title?: string | null
+          video_anime_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_episodes_video_anime_id_fkey"
+            columns: ["video_anime_id"]
+            isOneToOne: false
+            referencedRelation: "video_animes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_sources: {
+        Row: {
+          created_at: string
+          episode_id: string
+          id: string
+          kind: string
+          label: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          episode_id: string
+          id?: string
+          kind?: string
+          label: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          episode_id?: string
+          id?: string
+          kind?: string
+          label?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_sources_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "video_episodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
