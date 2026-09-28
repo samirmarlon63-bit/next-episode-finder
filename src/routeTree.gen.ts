@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ConfiguracionRouteImport } from './routes/configuracion'
 import { Route as GuardadosRouteImport } from './routes/guardados'
+import { Route as VideosIndexRouteImport } from './routes/videos.index'
+import { Route as VideosIdRouteImport } from './routes/videos.$id'
 import { Route as ApiPublicSyncRouteImport } from './routes/api/public/sync'
 import { Route as ApiPublicSyncVideosRouteImport } from './routes/api/public/sync-videos'
 
@@ -36,6 +38,16 @@ const GuardadosRoute = GuardadosRouteImport.update({
   path: '/guardados',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VideosIndexRoute = VideosIndexRouteImport.update({
+  id: '/videos/',
+  path: '/videos/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VideosIdRoute = VideosIdRouteImport.update({
+  id: '/videos/$id',
+  path: '/videos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSyncRoute = ApiPublicSyncRouteImport.update({
   id: '/api/public/sync',
   path: '/api/public/sync',
@@ -52,6 +64,8 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/configuracion': typeof ConfiguracionRoute
   '/guardados': typeof GuardadosRoute
+  '/videos/$id': typeof VideosIdRoute
+  '/videos/': typeof VideosIndexRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
   '/api/public/sync-videos': typeof ApiPublicSyncVideosRoute
 }
@@ -60,6 +74,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/configuracion': typeof ConfiguracionRoute
   '/guardados': typeof GuardadosRoute
+  '/videos/$id': typeof VideosIdRoute
+  '/videos': typeof VideosIndexRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
   '/api/public/sync-videos': typeof ApiPublicSyncVideosRoute
 }
@@ -69,6 +85,8 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/configuracion': typeof ConfiguracionRoute
   '/guardados': typeof GuardadosRoute
+  '/videos/$id': typeof VideosIdRoute
+  '/videos/': typeof VideosIndexRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
   '/api/public/sync-videos': typeof ApiPublicSyncVideosRoute
 }
@@ -79,6 +97,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/configuracion'
     | '/guardados'
+    | '/videos/$id'
+    | '/videos/'
     | '/api/public/sync'
     | '/api/public/sync-videos'
   fileRoutesByTo: FileRoutesByTo
@@ -87,6 +107,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/configuracion'
     | '/guardados'
+    | '/videos/$id'
+    | '/videos'
     | '/api/public/sync'
     | '/api/public/sync-videos'
   id:
@@ -95,6 +117,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/configuracion'
     | '/guardados'
+    | '/videos/$id'
+    | '/videos/'
     | '/api/public/sync'
     | '/api/public/sync-videos'
   fileRoutesById: FileRoutesById
@@ -104,6 +128,8 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ConfiguracionRoute: typeof ConfiguracionRoute
   GuardadosRoute: typeof GuardadosRoute
+  VideosIdRoute: typeof VideosIdRoute
+  VideosIndexRoute: typeof VideosIndexRoute
   ApiPublicSyncRoute: typeof ApiPublicSyncRoute
   ApiPublicSyncVideosRoute: typeof ApiPublicSyncVideosRoute
 }
@@ -138,6 +164,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuardadosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/videos/': {
+      id: '/videos/'
+      path: '/videos'
+      fullPath: '/videos/'
+      preLoaderRoute: typeof VideosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/videos/$id': {
+      id: '/videos/$id'
+      path: '/videos/$id'
+      fullPath: '/videos/$id'
+      preLoaderRoute: typeof VideosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/sync': {
       id: '/api/public/sync'
       path: '/api/public/sync'
@@ -160,6 +200,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   ConfiguracionRoute: ConfiguracionRoute,
   GuardadosRoute: GuardadosRoute,
+  VideosIdRoute: VideosIdRoute,
+  VideosIndexRoute: VideosIndexRoute,
   ApiPublicSyncRoute: ApiPublicSyncRoute,
   ApiPublicSyncVideosRoute: ApiPublicSyncVideosRoute,
 }
