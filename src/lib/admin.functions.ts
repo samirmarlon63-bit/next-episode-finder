@@ -15,6 +15,14 @@ export const runManualSync = createServerFn({ method: "POST" })
     return runSync("manual");
   });
 
+export const runManualVideoSync = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { runVideoSync } = await import("./sync/videos.server");
+    return runVideoSync("videos-manual");
+  });
+
 export const addSource = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
