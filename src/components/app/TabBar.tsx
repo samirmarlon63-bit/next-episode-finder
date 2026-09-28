@@ -1,9 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sparkles, Bookmark, Settings2 } from "lucide-react";
+import { Sparkles, Bookmark, Settings2, PlayCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { to: "/", label: "Nuevos", icon: Sparkles },
+  { to: "/videos", label: "Videos", icon: PlayCircle },
   { to: "/guardados", label: "Guardados", icon: Bookmark },
   { to: "/configuracion", label: "Configuración", icon: Settings2 },
 ] as const;
