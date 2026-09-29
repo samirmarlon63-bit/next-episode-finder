@@ -15,6 +15,13 @@
       "when": 1790555838981,
       "tag": "0001_videos_section",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790641041707,
+      "tag": "0002_video_providers",
+      "breakpoints": true
     }
   ]
 }

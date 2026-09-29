@@ -401,6 +401,62 @@ export type Database = {
           },
         ]
       }
+      video_providers: {
+        Row: {
+          config: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          kind: string
+          last_found: number
+          last_new: number
+          last_scan_at: string | null
+          last_scan_message: string | null
+          last_scan_status: string | null
+          name: string
+          url: string
+          video_anime_id: string | null
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          last_found?: number
+          last_new?: number
+          last_scan_at?: string | null
+          last_scan_message?: string | null
+          last_scan_status?: string | null
+          name: string
+          url: string
+          video_anime_id?: string | null
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          last_found?: number
+          last_new?: number
+          last_scan_at?: string | null
+          last_scan_message?: string | null
+          last_scan_status?: string | null
+          name?: string
+          url?: string
+          video_anime_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_providers_video_anime_id_fkey"
+            columns: ["video_anime_id"]
+            isOneToOne: false
+            referencedRelation: "video_animes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       video_sources: {
         Row: {
           created_at: string
@@ -408,6 +464,7 @@ export type Database = {
           id: string
           kind: string
           label: string
+          provider_id: string | null
           url: string
         }
         Insert: {
@@ -416,6 +473,7 @@ export type Database = {
           id?: string
           kind?: string
           label: string
+          provider_id?: string | null
           url: string
         }
         Update: {
@@ -424,6 +482,7 @@ export type Database = {
           id?: string
           kind?: string
           label?: string
+          provider_id?: string | null
           url?: string
         }
         Relationships: [
@@ -432,6 +491,13 @@ export type Database = {
             columns: ["episode_id"]
             isOneToOne: false
             referencedRelation: "video_episodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_sources_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "video_providers"
             referencedColumns: ["id"]
           },
         ]
