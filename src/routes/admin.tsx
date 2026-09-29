@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import { addSource, runManualSync } from "@/lib/admin.functions";
+import { AdminVideos } from "@/components/app/AdminVideos";
 import { formatStamp } from "@/lib/anime";
 import { useSettings } from "@/lib/store";
 import type { Session } from "@supabase/supabase-js";
@@ -286,6 +287,8 @@ function Panel() {
           </div>
         ))}
       </Section>
+
+      <AdminVideos timeZone={timeZone} />
 
       <button onClick={() => supabase.auth.signOut()} className="text-[14px] text-muted-foreground">Cerrar sesión</button>
     </>

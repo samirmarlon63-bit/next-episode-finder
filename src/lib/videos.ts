@@ -35,7 +35,12 @@ export const videoDetailQuery = (id: string) =>
         .select("*, video_sources(*)")
         .eq("video_anime_id", id)
         .order("number", { ascending: true });
-      return { anime, episodes: (eps ?? []) as VideoEpisode[] };
+      // Manual sources (no provider) take priority over automatically discovered ones.
+      const episodes = ((eps ?? []) as VideoEpisode[]).map((e) => ({
+        ...e,
+        video_sources: [...e.video_sources].sort((a, b) => Number(!!a.provider_id) - Number(!!b.provider_id)),
+      }));
+      return { anime, episodes };
     },
   });
 

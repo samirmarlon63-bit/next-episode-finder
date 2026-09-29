@@ -47,7 +47,9 @@ function VideoDetail() {
         {/* Player: full-bleed on phones, fixed 16:9, no zoom */}
         <div className="sticky top-0 z-30 bg-background sm:static sm:px-4">
           <div className="relative aspect-video w-full overflow-hidden bg-foreground/5 sm:rounded-2xl">
-            {embed ? (
+            {src?.kind === "video" ? (
+              <video key={src.url} src={src.url} controls playsInline className="absolute inset-0 h-full w-full bg-background" />
+            ) : embed ? (
               <iframe
                 key={embed}
                 src={embed}
