@@ -129,7 +129,7 @@ export function AdminVideos({ timeZone }: { timeZone: string }) {
           onSubmit={async (ev) => {
             ev.preventDefault();
             const { error } = await supabase.from("video_animes").insert({ title: a.title, cover_url: a.cover_url || null, synopsis: a.synopsis || null, status: a.status });
-            if (error) return toast.error(error.message);
+            if (error) { toast.error(error.message); return; }
             toast.success("Anime agregado");
             setA({ title: "", cover_url: "", synopsis: "", status: "airing" });
             refresh();
@@ -211,7 +211,7 @@ export function AdminVideos({ timeZone }: { timeZone: string }) {
               try {
                 config = JSON.parse(p.config);
               } catch {
-                return toast.error("La configuración no es un JSON válido");
+                toast.error("La configuración no es un JSON válido"); return;
               }
             }
             const { data, error } = await supabase
@@ -219,7 +219,7 @@ export function AdminVideos({ timeZone }: { timeZone: string }) {
               .insert({ name: p.name, kind: p.kind, url: p.url, video_anime_id: p.video_anime_id || null, config })
               .select("id")
               .single();
-            if (error) return toast.error(error.message);
+            if (error) { toast.error(error.message); return; }
             setP({ name: "", kind: "youtube_playlist", url: "", video_anime_id: "", config: "" });
             refresh();
             toast.message("Fuente agregada, escaneando...");
@@ -267,9 +267,9 @@ export function AdminVideos({ timeZone }: { timeZone: string }) {
               .upsert({ video_anime_id: e.video_anime_id, number: Number(e.number) }, { onConflict: "video_anime_id,number" })
               .select("id")
               .single();
-            if (error) return toast.error(error.message);
+            if (error) { toast.error(error.message); return; }
             const { error: e2 } = await supabase.from("video_sources").insert({ episode_id: ep.id, label: e.label || "Oficial", kind: detectKind(e.url), url: e.url });
-            if (e2) return toast.error(e2.message);
+            if (e2) { toast.error(e2.message); return; }
             await supabase.from("video_animes").update({ updated_at: new Date().toISOString() }).eq("id", e.video_anime_id);
             toast.success("Capítulo agregado");
             setE({ ...e, number: String(Number(e.number) + 1), url: "" });

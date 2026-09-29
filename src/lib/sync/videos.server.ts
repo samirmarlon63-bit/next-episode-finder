@@ -28,7 +28,7 @@ function safeRegex(s: string) {
   }
 }
 
-type Item = { title: string; link: string; episode?: number | null };
+type Item = { title: string; link: string; episode?: number | null | undefined };
 type Provider = {
   id: string;
   name: string;
@@ -60,11 +60,11 @@ async function scanItems(p: Provider): Promise<Item[]> {
     const res = await fetch(p.url, { signal: ctrl, headers: { "User-Agent": "AnimeEstrenosBot/1.0", Accept: "application/json" } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    const arr = getPath(json, String(p.config.itemsPath ?? ""));
+    const arr = getPath(json, String(p.config["itemsPath"] ?? ""));
     if (!Array.isArray(arr)) throw new Error("itemsPath no apunta a una lista");
-    const tf = String(p.config.titleField ?? "title");
-    const uf = String(p.config.urlField ?? "url");
-    const ef = p.config.episodeField ? String(p.config.episodeField) : null;
+    const tf = String(p.config["titleField"] ?? "title");
+    const uf = String(p.config["urlField"] ?? "url");
+    const ef = p.config["episodeField"] ? String(p.config["episodeField"]) : null;
     return arr
       .map((r) => ({ title: String(getPath(r, tf) ?? ""), link: String(getPath(r, uf) ?? ""), episode: ef ? Number(getPath(r, ef)) || null : undefined }))
       .filter((i) => i.title && /^https?:\/\//.test(i.link));
@@ -93,7 +93,7 @@ async function ingest(p: Provider, items: Item[], animes: AnimeRef[]) {
       animeId = match?.id ?? null;
     }
     if (!animeId) continue;
-    const n = it.episode ?? parseEpisode(it.title, p.config.episodeRegex as string | undefined);
+    const n = it.episode ?? parseEpisode(it.title, p.config["episodeRegex"] as string | undefined);
     if (n == null) continue;
     found++;
     let have = cache.get(animeId);
