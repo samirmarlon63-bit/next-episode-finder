@@ -23,6 +23,15 @@ export const runManualVideoSync = createServerFn({ method: "POST" })
     return runVideoSync("videos-manual");
   });
 
+export const scanVideoProvider = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { scanProviderById } = await import("./sync/videos.server");
+    return scanProviderById(data.id);
+  });
+
 export const addSource = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
