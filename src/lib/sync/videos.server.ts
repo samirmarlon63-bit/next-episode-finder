@@ -29,7 +29,7 @@ function safeRegex(s: string) {
 }
 
 type Item = { title: string; link: string; episode?: number | null | undefined };
-type Provider = {
+export type Provider = {
   id: string;
   name: string;
   kind: string;
@@ -52,7 +52,7 @@ function getPath(obj: unknown, path: string): unknown {
   return path.split(".").filter(Boolean).reduce<unknown>((o, k) => (o && typeof o === "object" ? (o as Record<string, unknown>)[k] : undefined), obj);
 }
 
-async function scanItems(p: Provider): Promise<Item[]> {
+export async function scanItems(p: Provider): Promise<Item[]> {
   if (p.kind === "youtube_playlist" || p.kind === "youtube_channel") return fetchFeed(youtubeFeedUrl(p.kind, p.url));
   if (p.kind === "rss") return fetchFeed(p.url);
   if (p.kind === "json") {
