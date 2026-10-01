@@ -5,7 +5,7 @@ import { RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
-import { runManualVideoSync, scanVideoProvider } from "@/lib/admin.functions";
+import { detectVideoSource, runManualVideoSync, scanVideoProvider } from "@/lib/admin.functions";
 import { formatStamp } from "@/lib/anime";
 
 const input = "w-full rounded-xl bg-foreground/6 px-3 py-2.5 text-[15px] outline-none ring-primary/50 focus:ring-2";
@@ -61,6 +61,26 @@ export function AdminVideos({ timeZone }: { timeZone: string }) {
 
   const [a, setA] = useState({ title: "", cover_url: "", synopsis: "", status: "airing" });
   const [p, setP] = useState({ name: "", kind: "youtube_playlist", url: "", video_anime_id: "", config: "" });
+  const detect = useServerFn(detectVideoSource);
+  const [origin, setOrigin] = useState("");
+  const [advOpen, setAdvOpen] = useState(false);
+  const [det, setDet] = useState<Awaited<ReturnType<typeof detectVideoSource>> | null>(null);
+  const runDetect = async (url: string) => {
+    if (!/^https?:\/\//.test(url)) return;
+    setBusy("detect");
+    try {
+      const r = await detect({ data: { url } });
+      setDet(r);
+      const config = { ...r.config, ...(r.language ? { language: r.language } : {}) };
+      setP((cur) => ({ ...cur, name: cur.name || r.name, kind: r.kind, url: r.url, config: JSON.stringify(config) }));
+      setAdvOpen(!r.ok || !!r.warning);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo leer el enlace");
+      setAdvOpen(true);
+    } finally {
+      setBusy(null);
+    }
+  };
   const [e, setE] = useState({ video_anime_id: "", number: "", label: "", url: "" });
 
   const runAll = async () => {
@@ -233,26 +253,65 @@ export function AdminVideos({ timeZone }: { timeZone: string }) {
           }}
         >
           <p className="text-[12px] text-muted-foreground">Solo canales oficiales, distribuidores con licencia o contenido propio.</p>
+          <div className="flex gap-2">
+            <input
+              className={input}
+              placeholder="Pega el enlace de la web original"
+              type="url"
+              value={origin}
+              onChange={(ev) => setOrigin(ev.target.value)}
+              onPaste={(ev) => {
+                const t = ev.clipboardData.getData("text");
+                if (/^https?:\/\//.test(t)) setTimeout(() => runDetect(t), 0);
+              }}
+            />
+            <button type="button" onClick={() => runDetect(origin)} disabled={!origin || busy === "detect"} className="shrink-0 rounded-xl bg-primary px-3 text-[13px] font-semibold text-primary-foreground disabled:opacity-60">
+              {busy === "detect" ? "Leyendo..." : "Detectar"}
+            </button>
+          </div>
+          {det && (
+            <div className="rounded-xl bg-foreground/5 p-3 text-[12px]">
+              {det.warning && <p className={det.ok ? "mb-2 text-muted-foreground" : "mb-2 text-destructive"}>{det.warning}</p>}
+              {det.ok && (
+                <>
+                  <p className="mb-1.5 font-medium">{KINDS[det.kind]?.label} · idioma {det.language}</p>
+                  <ul className="space-y-1">
+                    {det.preview.map((it, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="w-12 shrink-0 text-primary">{it.episode != null ? `Cap. ${it.episode}` : "—"}</span>
+                        <a href={it.link} target="_blank" rel="noreferrer" className="truncate hover:underline">{it.title}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          )}
           <input className={input} placeholder="Nombre (p. ej. Muse Asia)" value={p.name} onChange={(ev) => setP({ ...p, name: ev.target.value })} required />
-          <select className={input} value={p.kind} onChange={(ev) => setP({ ...p, kind: ev.target.value })}>
-            {Object.entries(KINDS).map(([k, v]) => (
-              <option key={k} value={k}>{v.label}</option>
-            ))}
-          </select>
-          <input className={input} placeholder={KINDS[p.kind]!.hint} value={p.url} onChange={(ev) => setP({ ...p, url: ev.target.value })} required />
           <select className={input} value={p.video_anime_id} onChange={(ev) => setP({ ...p, video_anime_id: ev.target.value })}>
             <option value="">Detectar el anime por el título</option>
             {animes.data?.map((v) => (
               <option key={v.id} value={v.id}>{v.title}</option>
             ))}
           </select>
-          <textarea
-            className={`${input} font-mono text-[12px]`}
-            rows={2}
-            placeholder='Configuración opcional (JSON), p. ej. {"episodeRegex":"Ep\\s*(\\d+)"}'
-            value={p.config}
-            onChange={(ev) => setP({ ...p, config: ev.target.value })}
-          />
+          <details open={advOpen} onToggle={(ev) => setAdvOpen((ev.target as HTMLDetailsElement).open)} className="rounded-xl bg-foreground/4 px-3 py-2">
+            <summary className="cursor-pointer text-[13px] text-muted-foreground">Avanzado</summary>
+            <div className="mt-2 space-y-2">
+              <select className={input} value={p.kind} onChange={(ev) => setP({ ...p, kind: ev.target.value })}>
+                {Object.entries(KINDS).map(([k, v]) => (
+                  <option key={k} value={k}>{v.label}</option>
+                ))}
+              </select>
+              <input className={input} placeholder={KINDS[p.kind]!.hint} value={p.url} onChange={(ev) => setP({ ...p, url: ev.target.value })} required />
+              <textarea
+                className={`${input} font-mono text-[12px]`}
+                rows={3}
+                placeholder='Configuración (JSON), p. ej. {"episodeRegex":"Ep\\s*(\\d+)","language":"es"}'
+                value={p.config}
+                onChange={(ev) => setP({ ...p, config: ev.target.value })}
+              />
+            </div>
+          </details>
           <button className="w-full rounded-full bg-foreground/10 py-2 text-[14px] font-semibold">Agregar y escanear</button>
         </form>
       </Section>
