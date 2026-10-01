@@ -48,3 +48,12 @@ export const addSource = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, items: items.length };
   });
+
+export const detectVideoSource = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ url: z.string().url() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { detectSource } = await import("./sync/detect.server");
+    return detectSource(data.url);
+  });
