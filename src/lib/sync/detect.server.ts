@@ -1,6 +1,6 @@
 // Autodetects a legal video source (YouTube playlist/channel, RSS/Atom feed, JSON API) from a pasted URL.
 // Reads only what the page openly advertises (feed links, metadata). Never bypasses blocks.
-import { parseEpisode, scanItems, type Provider } from "./videos.server";
+import { checkEmbeddable, detectAudio, parseEpisode, scanItems, sourceKind, type Provider } from "./videos.server";
 
 const UA = "AnimeEstrenosBot/1.0 (+source autodetect)";
 
@@ -11,7 +11,9 @@ export type Detection = {
   name: string;
   language: string;
   config: Record<string, string>;
-  preview: { title: string; link: string; episode: number | null }[];
+  /** Anime info read from the source's own public metadata. null = Por confirmar. */
+  meta: { title: string | null; cover: string | null; description: string | null; audio: "sub" | "dub" | null };
+  preview: { title: string; link: string; episode: number | null; audio: "sub" | "dub" | null; embeddable: boolean | null }[];
   warning: string | null;
 };
 
@@ -64,7 +66,7 @@ function guessJson(json: unknown) {
 
 export async function detectSource(raw: string): Promise<Detection> {
   const input = raw.trim();
-  const base: Detection = { ok: false, kind: "rss", url: input, name: "", language: "es", config: {}, preview: [], warning: null };
+  const base: Detection = { ok: false, kind: "rss", url: input, name: "", language: "es", config: {}, meta: { title: null, cover: null, description: null, audio: null }, preview: [], warning: null };
   let d = { ...base };
 
   try {
@@ -103,8 +105,51 @@ export async function detectSource(raw: string): Promise<Detection> {
       if (d.language === "es" && d.kind !== "rss") d.language = langFrom(page.text, page.final);
     }
 
+    // Public metadata: page og tags first, then the feed's own title/thumbnail/description.
+    const ent = (t: string) => t.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+    if (d.kind === "youtube_playlist") {
+      const page = await get(`https://www.youtube.com/playlist?list=${encodeURIComponent(d.url)}`).catch(() => null);
+      if (page) {
+        const t = meta(page.text, "og:title");
+        if (t) d.meta.title = ent(t);
+        const img = meta(page.text, "og:image");
+        if (img) d.meta.cover = ent(img);
+        const ds = meta(page.text, "og:description");
+        if (ds) d.meta.description = ent(ds);
+      }
+    }
+    if (d.kind.startsWith("youtube")) {
+      const feedUrl = d.kind === "youtube_playlist" ? `https://www.youtube.com/feeds/videos.xml?playlist_id=${d.url}` : `https://www.youtube.com/feeds/videos.xml?channel_id=${d.url}`;
+      const xml = (await get(feedUrl).catch(() => null))?.text ?? "";
+      const feedTitle = /<feed[\s\S]*?<title>([^<]+)<\/title>/.exec(xml)?.[1];
+      d.meta.title ??= feedTitle ? ent(feedTitle) : null;
+      d.meta.cover ??= /<media:thumbnail url="([^"]+)"/.exec(xml)?.[1] ?? null;
+      if (!d.meta.description) {
+        const md = /<media:description>([^<]{20,})<\/media:description>/.exec(xml)?.[1];
+        d.meta.description = md ? ent(md).slice(0, 600) : null;
+      }
+      if (!d.name && feedTitle) d.name = ent(feedTitle);
+    }
+    if (d.kind === "rss") {
+      const xml = (await get(d.url).catch(() => null))?.text ?? "";
+      const chan = xml.split(/<item[\s>]|<entry[\s>]/i)[0] ?? "";
+      d.meta.title = /<title>(?:<!\[CDATA\[)?([^<\]]+)/i.exec(chan)?.[1]?.trim() ?? null;
+      d.meta.cover = /<image>[\s\S]*?<url>([^<]+)<\/url>/i.exec(chan)?.[1] ?? /<itunes:image[^>]+href="([^"]+)"/i.exec(chan)?.[1] ?? /<logo>([^<]+)/i.exec(chan)?.[1] ?? null;
+      const ds = /<description>(?:<!\[CDATA\[)?([^<\]]+)/i.exec(chan)?.[1] ?? /<subtitle>([^<]+)/i.exec(chan)?.[1];
+      d.meta.description = ds ? ent(ds).slice(0, 600) : null;
+    }
+
     const items = await scanItems({ id: "preview", name: d.name || "Vista previa", kind: d.kind, url: d.url, video_anime_id: null, config: d.config } as Provider);
-    d.preview = items.slice(0, 6).map((i) => ({ title: i.title, link: i.link, episode: i.episode ?? parseEpisode(i.title) }));
+    d.preview = await Promise.all(
+      items.slice(0, 6).map(async (i) => ({
+        title: i.title,
+        link: i.link,
+        episode: i.episode ?? parseEpisode(i.title),
+        audio: detectAudio(i.title),
+        embeddable: sourceKind(i.link) === "external" ? false : await checkEmbeddable(i.link),
+      })),
+    );
+    d.meta.audio = detectAudio(`${d.meta.title ?? ""} ${d.preview.map((p) => p.title).join(" ")}`);
     d.ok = true;
     if (!items.length) d.warning = "La fuente no tiene publicaciones por ahora. Revisa las opciones avanzadas.";
     else if (!d.preview.some((p) => p.episode != null)) d.warning = "No reconocí números de capítulo en los títulos. Añade un patrón en Avanzado.";
