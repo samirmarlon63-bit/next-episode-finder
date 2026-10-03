@@ -28,7 +28,46 @@ function safeRegex(s: string) {
   }
 }
 
-type Item = { title: string; link: string; episode?: number | null | undefined };
+type Item = { title: string; link: string; episode?: number | null | undefined; summary?: string };
+
+/** Subtitled vs dubbed, only when the text says it explicitly. */
+export function detectAudio(text: string): "sub" | "dub" | null {
+  if (/doblaj|doblad[oa]|\bdub(bed)?\b|latino|castellano|吹替/i.test(text)) return "dub";
+  if (/subtitul|\bsub(bed|s)?\b|\bvose\b|字幕/i.test(text)) return "sub";
+  return null;
+}
+
+export const youtubeId = (url: string) =>
+  /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/.exec(url)?.[1] ?? null;
+
+/**
+ * Whether the original publisher allows this link to be shown inside an iframe.
+ * YouTube: official oEmbed endpoint (401/403 = embedding disabled by the owner).
+ * Other pages: X-Frame-Options / CSP frame-ancestors headers. Never bypassed.
+ * Returns null when it cannot be determined.
+ */
+export async function checkEmbeddable(url: string): Promise<boolean | null> {
+  try {
+    const yt = youtubeId(url);
+    if (yt) {
+      const r = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${yt}`)}`, { signal: AbortSignal.timeout(8000) });
+      if (r.ok) return true;
+      if (r.status === 401 || r.status === 403 || r.status === 404) return false;
+      return null;
+    }
+    if (/\.(mp4|m3u8|webm)(\?|$)/i.test(url)) return true;
+    const r = await fetch(url, { method: "GET", redirect: "follow", signal: AbortSignal.timeout(8000), headers: { "User-Agent": "AnimeEstrenosBot/1.0" } });
+    r.body?.cancel().catch(() => {});
+    if (!r.ok) return null;
+    const xfo = (r.headers.get("x-frame-options") ?? "").toLowerCase();
+    if (xfo.includes("deny") || xfo.includes("sameorigin")) return false;
+    const fa = /frame-ancestors([^;]*)/i.exec(r.headers.get("content-security-policy") ?? "")?.[1]?.trim();
+    if (fa != null && !/(^|\s)\*(\s|$)/.test(fa)) return false;
+    return true;
+  } catch {
+    return null;
+  }
+}
 export type Provider = {
   id: string;
   name: string;
@@ -85,6 +124,13 @@ async function ingest(p: Provider, items: Item[], animes: AnimeRef[]) {
   let added = 0;
   const touched = new Set<string>();
   const cache = new Map<string, Map<number, string>>();
+  const provId = p.id.startsWith("legacy:") ? null : p.id;
+  const known = new Set<string>();
+  if (provId) {
+    const { data } = await supabaseAdmin.from("video_sources").select("url").eq("provider_id", provId).limit(5000);
+    for (const r of data ?? []) known.add(r.url);
+  }
+  let blocked = 0;
   for (const it of items) {
     let animeId = p.video_anime_id;
     if (!animeId) {
@@ -115,13 +161,22 @@ async function ingest(p: Provider, items: Item[], animes: AnimeRef[]) {
       added++;
       touched.add(animeId);
     }
+    if (known.has(it.link)) continue;
+    known.add(it.link);
+    let kind = sourceKind(it.link);
+    if (kind !== "external" && (await checkEmbeddable(it.link)) === false) {
+      kind = "external"; // owner disabled embedding: open on the original site instead
+      blocked++;
+    }
+    const audio = detectAudio(`${it.title} ${p.name}`);
+    const label = audio ? `${p.name} · ${audio === "dub" ? "Doblaje" : "Subtitulado"}` : p.name;
     await supabaseAdmin
       .from("video_sources")
-      .upsert({ episode_id: epId, label: p.name, kind: sourceKind(it.link), url: it.link, provider_id: p.id.startsWith("legacy:") ? null : p.id }, { onConflict: "episode_id,url", ignoreDuplicates: true });
+      .upsert({ episode_id: epId, label, kind, url: it.link, provider_id: provId }, { onConflict: "episode_id,url", ignoreDuplicates: true });
   }
   const now = new Date().toISOString();
   for (const id of touched) await supabaseAdmin.from("video_animes").update({ updated_at: now }).eq("id", id);
-  return { found, added, touched: touched.size };
+  return { found, added, touched: touched.size, blocked };
 }
 
 async function loadAnimeRefs(): Promise<AnimeRef[]> {
@@ -134,7 +189,7 @@ async function scanOne(p: Provider, animes: AnimeRef[]) {
   try {
     const items = await scanItems(p);
     const r = await ingest(p, items, animes);
-    const msg = `${items.length} publicaciones · ${r.found} capítulos reconocidos · ${r.added} nuevos`;
+    const msg = `${items.length} publicaciones · ${r.found} capítulos reconocidos · ${r.added} nuevos${r.blocked ? ` · ${r.blocked} sin incrustación permitida` : ""}`;
     if (!p.id.startsWith("legacy:"))
       await supabaseAdmin.from("video_providers").update({ last_scan_at: now, last_scan_status: "ok", last_scan_message: msg, last_found: r.found, last_new: r.added }).eq("id", p.id);
     else await supabaseAdmin.from("video_animes").update({ last_synced_at: now, last_sync_error: null }).eq("id", p.video_anime_id!);
@@ -144,7 +199,7 @@ async function scanOne(p: Provider, animes: AnimeRef[]) {
     if (!p.id.startsWith("legacy:"))
       await supabaseAdmin.from("video_providers").update({ last_scan_at: now, last_scan_status: "error", last_scan_message: msg }).eq("id", p.id);
     else await supabaseAdmin.from("video_animes").update({ last_synced_at: now, last_sync_error: msg }).eq("id", p.video_anime_id!);
-    return { ok: false as const, error: `${p.name}: ${msg}`, found: 0, added: 0, touched: 0 };
+    return { ok: false as const, error: `${p.name}: ${msg}`, found: 0, added: 0, touched: 0, blocked: 0 };
   }
 }
 
