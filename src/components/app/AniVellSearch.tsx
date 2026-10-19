@@ -18,7 +18,8 @@ export function AniVellSearch({ search }: { search: string }) {
   const entries = trimmed
     ? (results.data?.resultados ?? []).flatMap((a) => {
       const source = a.fuentes.find((f) => a.ids_por_fuente[f]);
-      return source ? [{ ...a, source, id: a.ids_por_fuente[source], episode: null }] : [];
+      const id = source ? a.ids_por_fuente[source] : undefined;
+      return source && id ? [{ ...a, source, id, episode: null }] : [];
     })
     : (latest.data?.resultados ?? []).map((a) => ({ ...a, source: a.fuente, id: a.id_externo, episode: a.episodio, estado: null, anio: null, sinopsis_es: null }));
   return (

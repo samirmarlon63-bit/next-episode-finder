@@ -24,7 +24,7 @@ export const Route = createFileRoute("/videos/anivell/$fuente/$animeId")({
     ] };
   },
   pendingComponent: () => <div className="ambient min-h-screen p-6 text-muted-foreground" role="status">Consultando serie en AniVell…</div>,
-  errorComponent: ({ error, reset }) => <div className="ambient min-h-screen p-6"><Link to="/videos" className="text-primary">Volver a Videos</Link><p role="alert" className="mt-5 text-sm text-destructive">{error.message}</p><Button className="mt-3" onClick={reset}><RefreshCw />Reintentar</Button></div>,
+  errorComponent: ({ error, reset }) => <div className="ambient min-h-screen p-6"><Link to="/videos" className="text-primary">Volver a Videos</Link><p role="alert" className="mt-5 text-sm text-destructive">{error instanceof Error ? error.message : "No se pudo consultar AniVell."}</p><Button className="mt-3" onClick={reset}><RefreshCw />Reintentar</Button></div>,
   component: AniVellDetail,
 });
 
@@ -37,7 +37,7 @@ function AniVellDetail() {
 
 function DetailBody({ anime, fuente, animeId, requestedEpisode }: {
   anime: Awaited<ReturnType<typeof import("@/lib/anivell.functions").detailAniVell>>;
-  fuente: string; animeId: string; requestedEpisode?: number;
+  fuente: string; animeId: string; requestedEpisode: number | undefined;
 }) {
   const episodes = [...anime.episodios].sort((a, b) => a.numero - b.numero);
   const [number, setNumber] = useState<number | null>(() => requestedEpisode && episodes.some((e) => e.numero === requestedEpisode) ? requestedEpisode : null);
@@ -70,7 +70,7 @@ function DetailBody({ anime, fuente, animeId, requestedEpisode }: {
         </div>
         {anime.generos?.length ? <p className="mt-4 text-[13px] text-muted-foreground">{anime.generos.join(" · ")}</p> : null}
         <h2 className="mb-2 mt-6 px-1 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">Capítulos</h2>
-        <div className="glass divide-y divide-border overflow-hidden rounded-2xl">{episodes.map((e) => <Button key={e.numero} variant="ghost" disabled={e.disponible === false} onClick={() => { setNumber(e.numero); setServerIndex(0); window.scrollTo({ top: 0, behavior: "smooth" }); }} aria-pressed={number === e.numero} className={cn("flex h-auto w-full justify-start gap-3 rounded-none px-4 py-3 text-left", number === e.numero && "bg-foreground/6")}>
+        <div className="glass divide-y divide-border overflow-hidden rounded-2xl">{episodes.map((e) => <Button key={e.numero} variant="ghost" aria-label={`Capítulo ${e.numero}`} disabled={e.disponible === false} onClick={() => { setNumber(e.numero); setServerIndex(0); window.scrollTo({ top: 0, behavior: "smooth" }); }} aria-pressed={number === e.numero} className={cn("flex h-auto w-full justify-start gap-3 rounded-none px-4 py-3 text-left", number === e.numero && "bg-foreground/6")}>
           <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[13px]", number === e.numero ? "bg-primary text-primary-foreground" : "bg-foreground/8")}>{number === e.numero ? <Play className="h-3.5 w-3.5 fill-current" /> : e.numero}</span>
           <span className="min-w-0 flex-1 whitespace-normal"><span className="block text-[15px] font-medium">Capítulo {e.numero}</span>{e.titulo && <span className="block text-[12px] text-muted-foreground">{e.titulo}</span>}</span>{e.disponible === false && <span className="text-[11px] text-muted-foreground">No disponible</span>}
         </Button>)}{!episodes.length && <p className="px-4 py-3 text-sm text-muted-foreground">AniVell no devolvió capítulos.</p>}</div>
