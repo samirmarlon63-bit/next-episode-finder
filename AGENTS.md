@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- AniVell integration uses fixed-origin public server functions with validated response schemas and TanStack Query caching; this prevents arbitrary URL fetching and keeps provider failures explicit.
+- AniVell content has its own detail route and search section in Videos; existing stored videos and their player remain independent to avoid regressions.
