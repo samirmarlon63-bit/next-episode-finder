@@ -1,8 +1,12 @@
 import { describe, it, expect } from "bun:test";
-import { aniVellDetailSchema, aniVellSearchInputSchema, aniVellSearchSchema } from "./anivell.schemas.ts";
+import { aniVellDetailSchema, aniVellLatestSchema, aniVellSearchInputSchema, aniVellSearchSchema } from "./anivell.schemas.ts";
 import { requestAniVell } from "./anivell.server.ts";
 
 describe("AniVell real-data contract", () => {
+  it("preserves a missing recent episode number as null", () => {
+    const parsed = aniVellLatestSchema.parse({ resultados: [{ titulo: "Series", episodio: null, fuente: "anikoto", id_externo: "series" }] });
+    expect(parsed.resultados[0].episodio).toBeNull();
+  });
   it("requires the documented two-character search minimum", () => {
     expect(aniVellSearchInputSchema.safeParse({ q: "n" }).success).toBe(false);
     expect(aniVellSearchInputSchema.parse({ q: " na " }).q).toBe("na");

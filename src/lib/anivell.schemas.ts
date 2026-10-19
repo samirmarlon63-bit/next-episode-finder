@@ -38,7 +38,7 @@ export const aniVellServersSchema = z.object({
 export const aniVellLatestSchema = z.object({
   resultados: z.array(z.object({
     titulo: z.string(), titulo_es: optionalText, portada: optionalText,
-    episodio: z.number(), fuente: z.string(), id_externo: z.string(),
+    episodio: z.number().nullable(), fuente: z.string(), id_externo: z.string(),
     slug: optionalText, sub_espanol: z.boolean().nullish(),
   })),
 });
