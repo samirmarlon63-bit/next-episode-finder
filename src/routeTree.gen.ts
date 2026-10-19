@@ -17,6 +17,7 @@ import { Route as VideosIndexRouteImport } from './routes/videos.index'
 import { Route as VideosIdRouteImport } from './routes/videos.$id'
 import { Route as ApiPublicSyncRouteImport } from './routes/api/public/sync'
 import { Route as ApiPublicSyncVideosRouteImport } from './routes/api/public/sync-videos'
+import { Route as VideosAnivellFuenteAnimeIdRouteImport } from './routes/videos.anivell.$fuente.$animeId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,12 @@ const ApiPublicSyncVideosRoute = ApiPublicSyncVideosRouteImport.update({
   path: '/api/public/sync-videos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VideosAnivellFuenteAnimeIdRoute =
+  VideosAnivellFuenteAnimeIdRouteImport.update({
+    id: '/videos/anivell/$fuente/$animeId',
+    path: '/videos/anivell/$fuente/$animeId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/videos/': typeof VideosIndexRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
   '/api/public/sync-videos': typeof ApiPublicSyncVideosRoute
+  '/videos/anivell/$fuente/$animeId': typeof VideosAnivellFuenteAnimeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +86,7 @@ export interface FileRoutesByTo {
   '/videos': typeof VideosIndexRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
   '/api/public/sync-videos': typeof ApiPublicSyncVideosRoute
+  '/videos/anivell/$fuente/$animeId': typeof VideosAnivellFuenteAnimeIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +98,7 @@ export interface FileRoutesById {
   '/videos/': typeof VideosIndexRoute
   '/api/public/sync': typeof ApiPublicSyncRoute
   '/api/public/sync-videos': typeof ApiPublicSyncVideosRoute
+  '/videos/anivell/$fuente/$animeId': typeof VideosAnivellFuenteAnimeIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/videos/'
     | '/api/public/sync'
     | '/api/public/sync-videos'
+    | '/videos/anivell/$fuente/$animeId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/videos'
     | '/api/public/sync'
     | '/api/public/sync-videos'
+    | '/videos/anivell/$fuente/$animeId'
   id:
     | '__root__'
     | '/'
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
     | '/videos/'
     | '/api/public/sync'
     | '/api/public/sync-videos'
+    | '/videos/anivell/$fuente/$animeId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +145,7 @@ export interface RootRouteChildren {
   VideosIndexRoute: typeof VideosIndexRoute
   ApiPublicSyncRoute: typeof ApiPublicSyncRoute
   ApiPublicSyncVideosRoute: typeof ApiPublicSyncVideosRoute
+  VideosAnivellFuenteAnimeIdRoute: typeof VideosAnivellFuenteAnimeIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSyncVideosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/videos/anivell/$fuente/$animeId': {
+      id: '/videos/anivell/$fuente/$animeId'
+      path: '/videos/anivell/$fuente/$animeId'
+      fullPath: '/videos/anivell/$fuente/$animeId'
+      preLoaderRoute: typeof VideosAnivellFuenteAnimeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +225,7 @@ const rootRouteChildren: RootRouteChildren = {
   VideosIndexRoute: VideosIndexRoute,
   ApiPublicSyncRoute: ApiPublicSyncRoute,
   ApiPublicSyncVideosRoute: ApiPublicSyncVideosRoute,
+  VideosAnivellFuenteAnimeIdRoute: VideosAnivellFuenteAnimeIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -5,6 +5,7 @@ import { Play, Search } from "lucide-react";
 import { Screen } from "@/components/app/TabBar";
 import { VIDEO_STATUS, fmtEp, videoListQuery } from "@/lib/videos";
 import { cn } from "@/lib/utils";
+import { AniVellSearch } from "@/components/app/AniVellSearch";
 
 export const Route = createFileRoute("/videos/")({
   head: () => ({
@@ -102,6 +103,7 @@ function Videos() {
           </Link>
         ))}
       </div>
+      <AniVellSearch search={q} />
     </Screen>
   );
 }
